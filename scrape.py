@@ -3,6 +3,8 @@ from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.common.by import By
 import time
 import pickle
+WEBSITE_URL = "https://public.tableau.com/views/GatorEvalsThreeTermDataincludingSpring2024/GatorEvalsPublic?%3Adisplay_static_image=y&%3AbootstrapWhenNotified=true&%3Aembed=true&%3Alanguage=en-US&:embed=y&:showVizHome=n&:apiID=host0#navType=1&navSrc=Parse"
+
 
 def scroll_through_names(driver, n = 28):
     time.sleep(0.5)
@@ -14,23 +16,29 @@ def scroll_through_names(driver, n = 28):
         time.sleep(0.5)
 
 
-# https://stackoverflow.com/questions/19422214/how-can-i-inspect-disappearing-element-in-a-browser
+def initialize_webdriver():
+    # initialize chrome options
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--ignore-certificate-errors-spki-list')
+    chrome_options.add_argument("--enable-javascript")
+    chrome_options.add_experimental_option("detach", True) 
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--headless=new") # run without opening a browser - comment this to debug
 
-# chrome options to ignore ssl error and start maximized
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--ignore-certificate-errors-spki-list')
-chrome_options.add_argument("--enable-javascript")
-chrome_options.add_experimental_option("detach", True)
-chrome_options.add_argument("--start-maximized")
-chrome_options.add_argument("--headless=new")
-# connect driver to website
-website = "https://public.tableau.com/views/GatorEvalsThreeTermDataincludingSpring2024/GatorEvalsPublic?%3Adisplay_static_image=y&%3AbootstrapWhenNotified=true&%3Aembed=true&%3Alanguage=en-US&:embed=y&:showVizHome=n&:apiID=host0#navType=1&navSrc=Parse"
-driver = webdriver.Chrome(options=chrome_options)
-driver.get(website)
-driver.implicitly_wait(5)
+    # initialize driver
+    driver = webdriver.Chrome(options=chrome_options)
 
-# wait for website to load before continuing
-time.sleep(5) 
+    # connect driver to website
+    driver.get(WEBSITE_URL)
+    driver.implicitly_wait(5)
+
+    # wait for website to load before continuing
+    time.sleep(5) 
+
+    return driver
+
+
+driver = initialize_webdriver()
 
 # open dropdown for instructor name
 names_dropdown = driver.find_element(By.ID, "tabZoneId12")
@@ -47,11 +55,9 @@ scroll_through_names(driver)
 # grab all names list from pickle file
 with open('./utils/all_names.pkl', 'rb') as inp:
     all_names = pickle.load(inp)
-print(len(all_names))
 
-# start wherever the program last broke
-start_index = 4970
 
+start_index = 0
 # go through all profs, query the data
 for i in range(start_index, len(all_names)):
     while True:
@@ -64,7 +70,7 @@ for i in range(start_index, len(all_names)):
             table = driver.find_element(By.XPATH, '//a[@title="(All)"]')
             time.sleep(3)
             table.click()
-            time.sleep(0.5)
+            time.sleep(0.5)d
             print("table focused", end=" | ")
 
             # get the checkbox for the associated name
@@ -85,8 +91,6 @@ for i in range(start_index, len(all_names)):
             time.sleep(0.5)
             print("dropdown disabled", end=" | ")
 
-            # time.sleep(15)
-            # college = driver.find_element(By.XPATH, '//span[@id="tab-ui-id-1721274621044" and @class="tabComboBoxName"]').text
             # find the canvas
             canvas = driver.find_element(By.ID, "view7413426041701531777_11695660129199681370")
             time.sleep(5)
@@ -117,15 +121,16 @@ for i in range(start_index, len(all_names)):
             time.sleep(0.5)
 
             print("loading data...")
+            ]
             # parse the data
             data = ["\""+all_names[i]+"\""]
-            for moobs in range(10):
+            for j in range(10):
                 
                 datapoint = driver.find_element(By.XPATH, '//span[@style="font-family:\'Tableau Book\';font-size:13px;color:#333333;font-weight:bold;font-style:normal;text-decoration:none;"]').text
                 time.sleep(0.5)
                 data.append(datapoint)
 
-                if moobs == 10: # moobs
+                if j == 10:
                     break
 
                 # move to next one
@@ -172,27 +177,16 @@ for i in range(start_index, len(all_names)):
             print("checkbox disabled")
             break
         except:
+            # run broke. known reasons: browser times out / broken index on tableau -> restart selenium
             time.sleep(5)
             print("BROKE")
             with open("broke.txt", 'a') as f_object:
                 f_object.write(f"{i}, {all_names[i]}\n")
                 f_object.close()
             driver.quit()
-            # chrome options to ignore ssl error and start maximized
-            chrome_options = webdriver.ChromeOptions()
-            chrome_options.add_argument('--ignore-certificate-errors-spki-list')
-            chrome_options.add_argument("--enable-javascript")
-            chrome_options.add_experimental_option("detach", True)
-            chrome_options.add_argument("--start-maximized")
-            chrome_options.add_argument("--headless=new")
-            # connect driver to website
-            website = "https://public.tableau.com/views/GatorEvalsThreeTermDataincludingSpring2024/GatorEvalsPublic?%3Adisplay_static_image=y&%3AbootstrapWhenNotified=true&%3Aembed=true&%3Alanguage=en-US&:embed=y&:showVizHome=n&:apiID=host0#navType=1&navSrc=Parse"
-            driver = webdriver.Chrome(options=chrome_options)
-            driver.get(website)
-            driver.implicitly_wait(5)
 
-            # wait for website to load before continuing
-            time.sleep(5) 
+
+            driver = initialize_webdriver()
 
             # open dropdown for instructor name
             names_dropdown = driver.find_element(By.ID, "tabZoneId12")
