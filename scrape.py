@@ -4,7 +4,15 @@ from selenium.webdriver.common.by import By
 import time
 import pickle
 
-
+def convert_name(name):
+    '''convert name from "last_name, first_name" to 
+    "first_name last_name"
+    '''
+    # Split the name at the comma
+    parts = name.split(', ')
+    # Rearrange the parts and join them with a space
+    converted_name = f"{parts[1]} {parts[0]}"
+    return converted_name
 def scroll_through_names(driver, n = 28):
     time.sleep(0.5)
     for _ in range(n):
@@ -83,7 +91,7 @@ with open('./utils/all_names.pkl', 'rb') as inp:
     all_names = pickle.load(inp)
 
 
-broke_counter, start_index = 0, 198
+broke_counter, start_index = 0, 0
 # go through all profs, query the data
 for i in range(start_index, len(all_names)):
 
@@ -141,7 +149,7 @@ for i in range(start_index, len(all_names)):
             time.sleep(0.5)
 
             # parse all 10 data points
-            data = ["\""+all_names[i]+"\""]
+            data = ["\""+convert_name(all_names[i])+"\""]
             for j in range(10):
                 datapoint = driver.find_element(By.XPATH, '//span[@style="font-family:\'Tableau Book\';font-size:13px;color:#333333;font-weight:bold;font-style:normal;text-decoration:none;"]').text
                 time.sleep(0.5)
@@ -215,7 +223,7 @@ for i in range(start_index, len(all_names)):
                     f_object.write(f"{i}, {all_names[i]}\n")
                     f_object.close()
                 break
-            
+
     # skip if the current element cannot be parsed after 3 tries
     if broke_counter == 3:
         broke_counter = 0
