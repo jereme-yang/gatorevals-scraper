@@ -150,19 +150,23 @@ for i in range(start_index, len(all_names)):
 
             # parse all 10 data points
             data = ["\""+convert_name(all_names[i])+"\""]
-            for j in range(10):
+            num_data_points = 6
+            for j in range(num_data_points):
                 datapoint = driver.find_element(By.XPATH, '//span[@style="font-family:\'Tableau Book\';font-size:13px;color:#333333;font-weight:bold;font-style:normal;text-decoration:none;"]').text
                 time.sleep(0.5)
                 data.append(datapoint)
-                if j == 10:
+                if j == num_data_points:
                     break
-
+            
                 # move to next one
                 ActionChains(driver)\
                         .key_down(Keys.ARROW_DOWN)\
                         .key_up(Keys.ARROW_DOWN)\
                         .perform()
 
+            # append the average for this version
+            data.append(str(round(sum([float(e) for e in data[1:]])/num_data_points, 2)))
+            
             time.sleep(0.5)
             print(f"{data}")
 
