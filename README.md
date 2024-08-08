@@ -5,7 +5,7 @@ run gen_pickle.py, then run scrape.py
 
 
 ## Data
-data is stored in CSV format, containing all 10 data points available on gatorevals.
+data is stored in CSV format, containing the top 6 data points available on gatorevals, as well as the average of these scores.
 
 Need the data in a JSON map format?
 CSV -> JSON:
